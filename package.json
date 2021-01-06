@@ -1,0 +1,32 @@
+{
+  "name": "snakesny-engine",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "type": "module",
+  "scripts": {
+    "start": "node app.js",
+    "test": "mocha",
+    "client": "node test/client.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@gitlab.com/maherlaaroussi/snakesy.git"
+  },
+  "author": "Maher LAAROUSSI, Amin JELLAD, Arnaud COSTA",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://gitlab.com/maherlaaroussi/snakesy/issues"
+  },
+  "homepage": "https://gitlab.com/maherlaaroussi/snakesy#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "socket.io": "^3.0.4",
+    "socket.io-client": "^3.0.4",
+    "websocket": "^1.0.33"
+  },
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "mocha": "^8.2.1"
+  }
+}
