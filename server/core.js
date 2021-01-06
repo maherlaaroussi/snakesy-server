@@ -1,61 +1,69 @@
 import Player from '../models/player.js';
 import Map from '../models/map.js';
 import Position from '../models/position.js';
-import GameConfig from '../config/game.js'
-
-var map = new Map();
-var playersList = [];
-//var deadPlayersList = [];
-
+import GameConfig from '../config/game.js';
 class Core {
 
-    constructor() {}
+    constructor() {
+        this.map = new Map();
+        this.playersList = [];
+        this.deadPlayersList = [];
+    }
     
     refreshGame() {
 
-        // TODO: tester l'hypothèse de la suppression et de l'ajout du joueur dans la carte pour le problème du X -> XX -> X.
-        // TODO: mettre les variables (privées ?) dans la classe et pas à l'extérieur
+        var playersNextPositions = [];
 
-        playersList.forEach(p => {
+        this.playersList.forEach(p => {
+            var newPosition = this.getNewPosition(p.snake[0], p.nextDirection);
+            playersNextPositions.push([p, newPosition]);
+        });
+
+        playersNextPositions.forEach(p => {
+            var ps = playersNextPositions.filter(p2 => p[1] === p2[1]);
+            if (ps.length > 1) ps.forEach(player => this.dead(player[0]));
+        });
+
+        this.playersList.forEach(p => {
             this.movePlayer(p);
         });
 
         // Fruit's counter, at the end, a fruit spawn
-        if(map.counterFruit > 0) map.counterFruit--;
-        if(map.counterFruit == 0) map.generateFruit();
+        if(this.map.counterFruit > 0) this.map.counterFruit--;
+        if(this.map.counterFruit == 0) this.map.generateFruit();
 
+        // X . X
     }
 
     newGame() {
-        map.init();
+        this.map.init();
     }
 
     newPlayer(name, socket) {
         if (!this.isNameExist(name)) {
-            var randomPosition = map.getRandomSpawn();
+            var randomPosition = this.map.getRandomSpawn();
             var player = new Player(name, socket);
             player.snake.push(randomPosition);
-            player.snake.push(new Position(randomPosition.x - 1, randomPosition.y)); 
-            playersList.push(player);
-            map.map[randomPosition.x][randomPosition.y] = GameConfig.keyMap.SNAKE;
-            map.map[randomPosition.x - 1][randomPosition.y] = GameConfig.keyMap.SNAKE;
+            this.playersList.push(player);
+            this.map.map[randomPosition.x][randomPosition.y] = GameConfig.keyMap.SNAKE;
         }
+        // TODO: le serveur doit fermer ou redemmander au client quand le prénom existe déjà.
     }
 
     getMap() {
-        return map;
+        return this.map;
     }
     
     getPlayers() {
-        return playersList;
+        return this.playersList;
     }
 
     isNameExist(name) {
-        return playersList.some(p => p.name == name);
+        return this.playersList.some(p => p.name == name);
     }
 
     getPlayer(socket) {
-        return playersList.filter(p => p.socket == socket)[0];
+        return this.playersList.filter(p => p.socket == socket)[0];
     }
 
     isValidDirection(direction) {
@@ -68,7 +76,7 @@ class Core {
         for (var i = GameConfig.HEIGHT - 1; i >= 0; i--) {
           line = '';
           for (var j = 0; j < GameConfig.WIDTH; j++) {
-            var s = map.map[j][i] == 0 ? '.' : (map.map[j][i] == 1 ? '*' : map.map[j][i] == 2 ? 'X' : (map.map[j][i] == 3 ? 'O' : '+'));
+            var s = this.map.map[j][i] == 0 ? '.' : (this.map.map[j][i] == 1 ? '*' : this.map.map[j][i] == 2 ? 'X' : (this.map.map[j][i] == 3 ? 'O' : '+'));
             line += (' '+s);
             //console.log(map[j][i]);
           }
@@ -79,7 +87,8 @@ class Core {
     // Move one player.
     movePlayer(player) {
         // Remove player from map
-        player.snake.forEach(position => map.map[position.x][position.y] = GameConfig.keyMap.EMPTY); // O(n)
+        // TODO : gérer les déplacement mirroir (si le serpent se déplace en bas et qui faut haut, le serveur ne validera pas la position ou alors on dit qu'il se mange et il meurt)
+        player.snake.forEach(position => this.map.map[position.x][position.y] = GameConfig.keyMap.EMPTY); // O(n)
 
         var head = player.snake[0];
         var newPosition = this.getNewPosition(head, player.nextDirection);
@@ -92,39 +101,40 @@ class Core {
         
         // If there is a fruit on the new position
         if(this.isFruitAtPosition(newPosition)) {
-            this.eatFruit(player, newPosition);
+            this.eatFruit(player);
         }
         else {
             player.snake.unshift(newPosition);
             player.snake.pop();
         }
-         
+
         // Reput player on the map
-        player.snake.forEach(position => map.map[position.x][position.y] = GameConfig.keyMap.SNAKE);
+        player.snake.forEach(position => this.map.map[position.x][position.y] = GameConfig.keyMap.SNAKE);
     }
 
     dead(player) {
         this.alive = false;
         this.snake = [];
-        deadPlayersList.push(player);
-        const index = playersList.indexOf(player)
-        playersList.splice(index, 1);
-      }
-    eatFruit(player, newPosition) {
-        player.snake.unshift(newPosition);
+        this.deadPlayersList.push(player);
+        const index = this.playersList.indexOf(player)
+        this.playersList.splice(index, 1);
+    }
+
+    eatFruit(player) {
+        player.snake.unshift(this.map.fruitCoordinate);
         player.score += GameConfig.FRUITSCORE;
-        map.map[map.fruitCoordinate.x][map.fruitCoordinate.y] = GameConfig.keyMap.SNAKE;
-        map.counterFruit = (Math.floor(Math.random() * (GameConfig.DELAYMAX - GameConfig.DELAYMIN) + GameConfig.DELAYMIN)) / GameConfig.INTERVAL;
+        this.map.counterFruit = (Math.floor(Math.random() * ((GameConfig.DELAYMAX + 1) - GameConfig.DELAYMIN) + GameConfig.DELAYMIN)) / GameConfig.INTERVAL;
+        this.map.fruitCoordinate = undefined;
     }
 
     // Check is a fruit is at this position.
     isFruitAtPosition(position) {
-        return (map.getKeyMap(position) == GameConfig.keyMap.FRUIT);
+        return (this.map.getKeyMap(position) == GameConfig.keyMap.FRUIT);
     }
 
     isValidMove(position, direction) {
         var newPosition = this.getNewPosition(position, direction);
-        return map.isEmptyPositionOrFruit(newPosition);
+        return this.map.isEmptyPositionOrFruit(newPosition);
     }
 
     getNewPosition(position, direction) {

@@ -4,7 +4,6 @@ import * as socketio from 'socket.io';
 import Core from './core.js';
 
 class Server {
-  
   constructor() {
     this.core = new Core();
     this.io = new socketio.Server(ServerConfig.PORT);
@@ -22,20 +21,25 @@ class Server {
 
     // Connection is important for server-side, we must put all stuffs here.
     this.io.on('connection', socket => {
-        socket.on('new-player', name => {
-          console.log('New player: ' + name);
-          this.core.newPlayer(name, socket);
-        });
+      // TODO: Check if player not exist
+      socket.on('new-player', name => {
+        //console.log('New player: ' + name);
+        this.core.newPlayer(name, socket);
+      });
 
-        socket.on('move', direction => {
-          console.log('Receive: '+ direction);
-          core.saveMove(direction, socket);
-        });
+      socket.on('player-online', name => {
+        // TODO: si le joueur existe dans la partie ou non.
+      });
+
+      socket.on('move', direction => {
+        //console.log('Receive: '+ direction);
+        this.core.saveMove(direction, socket);
+      });
     });
   }
 
   refresh() {
-    this.core.getPlayers().forEach(p => io.emit('players', p.snake));
+    this.core.getPlayers().forEach(p => this.io.emit('players', p.snake));
     this.core.showMap();
     this.core.refreshGame();
   }

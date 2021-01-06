@@ -8,8 +8,8 @@ const DIRECTIONS = {
 };
 
 const GameConfig = {
-    WIDTH: 12,
-    HEIGHT: 12,
+    WIDTH: 16,
+    HEIGHT: 16,
     keyMap: {
         EMPTY: 0,
         WALL: 1,

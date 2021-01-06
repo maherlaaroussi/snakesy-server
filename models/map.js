@@ -89,14 +89,12 @@ class Map {
     }
 
     getRandomSpawn() {
-        // TODO: Prendre en compte la positoins des snakes, donc dépalcer ces fonctions dans CORE
         var positions = this.getEmptyPositionsWithSpaceWithWalls();
         var rand = Math.floor(Math.random() * (positions.length - 1));
         return positions[rand];
     }
 
     getRandomEmptyPosition() {
-        // TODO: Ne pas prendre en compte la position des snakes des joueurs
         var positions = this.getEmptyPositions();
         var rand = Math.floor(Math.random() * (positions.length - 1));
         return positions[rand];

@@ -29,16 +29,18 @@ class TestMap {
 class TestClient {
 
     constructor() {
-        this.run(5);
+        this.run(100);
     }
 
     async run(playersNumber = 1) {
 
+        var moveList = ['up','down','left','right'];
+        
         for (var i = 0; i < playersNumber; i++) {
             const socket = io('ws://localhost:' + ServerConfig.PORT);
             // Connect is just to verify if the socket is connected to server.
             socket.on('connect', () => {
-                console.log('Connected with server.');
+                console.log('Connected with id: ' + socket.id);
             });
 
             socket.on('refresh-map', data => {
@@ -50,9 +52,12 @@ class TestClient {
             });
 
             socket.emit('new-player', 'Player' + (i));
-            socket.emit('move','down');
 
-            await this.sleep(6000);
+            var rand = Math.floor(Math.random() * (4 - 1));
+            var direction = moveList[rand];
+            socket.emit('move', direction);
+
+            await this.sleep(1000);
         } 
     }
 
