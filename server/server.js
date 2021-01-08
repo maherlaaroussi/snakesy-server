@@ -40,7 +40,7 @@ class Server {
 
   refresh() {
     //this.core.getPlayers().forEach(p => this.io.emit('players', p.snake));
-    //this.core.showMap();
+    this.core.showMap();
     this.core.refreshGame();
     this.io.emit('refresh-map', JSON.stringify(this.core.getInformations()));
     //this.core.getPlayers().forEach(p => this.io.emit('refresh-map', p.snake));

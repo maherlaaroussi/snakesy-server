@@ -30,7 +30,7 @@ class TestMap {
 class TestClient {
 
     constructor() {
-        this.run(1);
+        this.run(100);
     }
 
     async run(playersNumber = 1) {
@@ -62,7 +62,6 @@ class TestClient {
             });
 
             socket.emit('new-player', 'Player' + (i));
-            socket.emit('new-player', 'Beta');
 
             var rand = Math.floor(Math.random() * (4 - 1)); 
             var direction = moveList[rand];

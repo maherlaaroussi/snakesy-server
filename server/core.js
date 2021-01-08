@@ -166,9 +166,17 @@ class Core {
 
     // Save next direction
     saveMove(direction, socket) {
+        if(!this.isSocketExist(socket)) return;
         if(!this.isValidDirection(direction)) return;
         var p = this.getPlayer(socket);
-        if(p) p.setNextDirection(direction);
+
+        // If player go the opposite direction
+        if(p.snake.length > 1) {
+            var newPosition = this.getNewPosition(p.snake[0], direction);
+            if(p.snake.some(position => position === newPosition)) return;
+        }
+
+        p.setNextDirection(direction);
     }
 
     // Get all informations
@@ -181,18 +189,18 @@ class Core {
         return informations;
     }
     
-    getPlayersWithoutSocket(list) {
-        //  TODO: use a deep copy.
-        //  var copy = JSON.parse(JSON.stringify(obj));
-        var newPlayersList = [...list];
-        //Object.assign(newPlayersList, list); // Copy the list
-        newPlayersList.forEach(p => {
-            delete p.socket;
-            delete p.nextDirection;
+    getPlayersWithoutSocket(playersList) {
+        var newPlayersList = [];
+        playersList.forEach(p => {
+            var PlayerWithoutSocketAndNextDirection = {
+                name : p.name,
+                snake: p.snake,
+                score: p.score,
+                alive: p.alive     
+            };
+            newPlayersList.push(PlayerWithoutSocketAndNextDirection);
         });
-        console.log(newPlayersList);
-        console.log(this.playersList);
-        return newPlayersList;
+        return newPlayersList; 
     }
 }
 
