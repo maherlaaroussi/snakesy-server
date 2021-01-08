@@ -2,6 +2,7 @@ import ServerConfig from '../config/server.js';
 import GameConfig from '../config/game.js';
 import * as socketio from 'socket.io';
 import Core from './core.js';
+import ResponseCode from '../config/server.js';
 
 class Server {
   constructor() {
@@ -21,27 +22,28 @@ class Server {
 
     // Connection is important for server-side, we must put all stuffs here.
     this.io.on('connection', socket => {
-      // TODO: Check if player not exist
+      
       socket.on('new-player', name => {
         //console.log('New player: ' + name);
-        this.core.newPlayer(name, socket);
-      });
-
-      socket.on('player-online', name => {
-        // TODO: si le joueur existe dans la partie ou non.
+        var codeAnswer = this.core.newPlayer(name, socket);
+        if(codeAnswer == ResponseCode.ACCOUNT_CREATED) this.io.emit('player-created');
+        else this.io.emit('message', codeAnswer);
       });
 
       socket.on('move', direction => {
         //console.log('Receive: '+ direction);
         this.core.saveMove(direction, socket);
       });
+
     });
   }
 
   refresh() {
-    this.core.getPlayers().forEach(p => this.io.emit('players', p.snake));
-    this.core.showMap();
+    //this.core.getPlayers().forEach(p => this.io.emit('players', p.snake));
+    //this.core.showMap();
     this.core.refreshGame();
+    this.io.emit('refresh-map', JSON.stringify(this.core.getInformations()));
+    //this.core.getPlayers().forEach(p => this.io.emit('refresh-map', p.snake));
   }
 }
 

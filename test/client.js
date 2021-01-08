@@ -1,13 +1,14 @@
 import Map from '../models/map.js';
 import { io } from 'socket.io-client';
 import ServerConfig from '../config/server.js';
+import { ResponseCode } from '../config/server.js';
 // ----------------------------------------------
 class TestMap {
 
     constructor() {
         var map = new Map(32, 24);
         map.init();
-        this.run()
+        this.run();
     }
 
     run() {
@@ -29,7 +30,7 @@ class TestMap {
 class TestClient {
 
     constructor() {
-        this.run(100);
+        this.run(1);
     }
 
     async run(playersNumber = 1) {
@@ -44,16 +45,26 @@ class TestClient {
             });
 
             socket.on('refresh-map', data => {
-                console.log(data);
+                //console.log(data);
             });
 
             socket.on('players', data => {
-                console.log(data);
+                //console.log(data);
+            });
+
+            socket.on('player-created', () => {
+                console.log('Player created. ' + socket.id);
+            });
+
+            socket.on('message', data => {
+                if(data == ResponseCode.ERROR_NAME_ALREADY_EXIST) console.log('Name already exist!');
+                if(data == ResponseCode.ERROR_SOCKET_ALREADY_EXIST) console.log('Socket already exist!');
             });
 
             socket.emit('new-player', 'Player' + (i));
+            socket.emit('new-player', 'Beta');
 
-            var rand = Math.floor(Math.random() * (4 - 1));
+            var rand = Math.floor(Math.random() * (4 - 1)); 
             var direction = moveList[rand];
             socket.emit('move', direction);
 

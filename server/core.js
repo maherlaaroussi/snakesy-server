@@ -2,6 +2,8 @@ import Player from '../models/player.js';
 import Map from '../models/map.js';
 import Position from '../models/position.js';
 import GameConfig from '../config/game.js';
+import { ResponseCode } from '../config/server.js';
+
 class Core {
 
     constructor() {
@@ -11,19 +13,7 @@ class Core {
     }
     
     refreshGame() {
-
-        var playersNextPositions = [];
-
-        this.playersList.forEach(p => {
-            var newPosition = this.getNewPosition(p.snake[0], p.nextDirection);
-            playersNextPositions.push([p, newPosition]);
-        });
-
-        playersNextPositions.forEach(p => {
-            var ps = playersNextPositions.filter(p2 => p[1] === p2[1]);
-            if (ps.length > 1) ps.forEach(player => this.dead(player[0]));
-        });
-
+        this.killPlayersAtSameNewPosition();
         this.playersList.forEach(p => {
             this.movePlayer(p);
         });
@@ -39,15 +29,29 @@ class Core {
         this.map.init();
     }
 
+    killPlayersAtSameNewPosition() {
+        var playersNextPositions = [];
+
+        this.playersList.forEach(p => {
+            var newPosition = this.getNewPosition(p.snake[0], p.nextDirection);
+            playersNextPositions.push([p, newPosition]);
+        });
+
+        playersNextPositions.forEach(p => {
+            var ps = playersNextPositions.filter(p2 => p[1] === p2[1]);
+            if (ps.length > 1) ps.forEach(player => this.dead(player[0]));
+        });
+    }
+
     newPlayer(name, socket) {
-        if (!this.isNameExist(name)) {
-            var randomPosition = this.map.getRandomSpawn();
-            var player = new Player(name, socket);
-            player.snake.push(randomPosition);
-            this.playersList.push(player);
-            this.map.map[randomPosition.x][randomPosition.y] = GameConfig.keyMap.SNAKE;
-        }
-        // TODO: le serveur doit fermer ou redemmander au client quand le prénom existe déjà.
+        if(this.isNameExist(name)) return ResponseCode.ERROR_NAME_ALREADY_EXIST;
+        if(this.isSocketExist(socket)) return ResponseCode.ERROR_SOCKET_ALREADY_EXIST;
+        var randomPosition = this.map.getRandomSpawn();
+        var player = new Player(name, socket);
+        player.snake.push(randomPosition);
+        this.playersList.push(player);
+        this.map.map[randomPosition.x][randomPosition.y] = GameConfig.keyMap.SNAKE; 
+        return ResponseCode.ACCOUNT_CREATED;
     }
 
     getMap() {
@@ -60,6 +64,10 @@ class Core {
 
     isNameExist(name) {
         return this.playersList.some(p => p.name == name);
+    }
+
+    isSocketExist(socket) {
+        return this.playersList.some(p => p.socket === socket);
     }
 
     getPlayer(socket) {
@@ -161,6 +169,30 @@ class Core {
         if(!this.isValidDirection(direction)) return;
         var p = this.getPlayer(socket);
         if(p) p.setNextDirection(direction);
+    }
+
+    // Get all informations
+    getInformations() {
+        var informations = {
+            map: this.map,
+            players: this.getPlayersWithoutSocket(this.playersList),
+            deadPlayers: this.getPlayersWithoutSocket(this.deadPlayersList)
+        };
+        return informations;
+    }
+    
+    getPlayersWithoutSocket(list) {
+        //  TODO: use a deep copy.
+        //  var copy = JSON.parse(JSON.stringify(obj));
+        var newPlayersList = [...list];
+        //Object.assign(newPlayersList, list); // Copy the list
+        newPlayersList.forEach(p => {
+            delete p.socket;
+            delete p.nextDirection;
+        });
+        console.log(newPlayersList);
+        console.log(this.playersList);
+        return newPlayersList;
     }
 }
 
