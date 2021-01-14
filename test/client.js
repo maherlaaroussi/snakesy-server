@@ -1,6 +1,7 @@
 import Map from '../models/map.js';
 import { io } from 'socket.io-client';
 import ServerConfig from '../config/server.js';
+import GameConfig from '../config/game.js';
 import { ResponseCode } from '../config/server.js';
 // ----------------------------------------------
 class TestMap {
@@ -30,7 +31,23 @@ class TestMap {
 class TestClient {
 
     constructor() {
-        this.run(100);
+        this.run();
+    }
+
+    showMap(data) {
+        var map = data.map.map;
+        console.clear();
+        var line = '';
+        for (var i = GameConfig.HEIGHT - 1; i >= 0; i--) {
+            line = '';
+            for (var j = 0; j < GameConfig.WIDTH; j++) {
+            var s = map[j][i] == 0 ? '.' : (map[j][i] == 1 ? '*' : map[j][i] == 2 ? 'X' : (map[j][i] == 3 ? 'O' : '+'));
+            line += (' '+s);
+            //console.log(map[j][i]);
+            }
+            console.log(line);
+        }
+        console.log('Players: ' + data.players.length + '\tDead: ' + data.deadPlayers.length);
     }
 
     async run(playersNumber = 1) {
@@ -41,19 +58,21 @@ class TestClient {
             const socket = io('ws://localhost:' + ServerConfig.PORT);
             // Connect is just to verify if the socket is connected to server.
             socket.on('connect', () => {
-                console.log('Connected with id: ' + socket.id);
+                //console.log('Connected with id: ' + socket.id);
             });
 
             socket.on('refresh-map', data => {
-                //console.log(data);
+                var dt = JSON.parse(data);
+                this.showMap(dt);
             });
 
-            socket.on('players', data => {
+            socket.on('my-player', data => {
+                //console.log('----------- ID: ' + socket.id);
                 //console.log(data);
             });
 
             socket.on('player-created', () => {
-                console.log('Player created. ' + socket.id);
+                //console.log('Player created. ' + socket.id);
             });
 
             socket.on('message', data => {
@@ -67,7 +86,7 @@ class TestClient {
             var direction = moveList[rand];
             socket.emit('move', direction);
 
-            await this.sleep(1000);
+            await this.sleep(2000);
         } 
     }
 

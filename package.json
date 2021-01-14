@@ -22,11 +22,11 @@
   "dependencies": {
     "express": "^4.17.1",
     "socket.io": "^3.0.4",
-    "socket.io-client": "^3.0.4",
     "websocket": "^1.0.33"
   },
   "devDependencies": {
     "chai": "^4.2.0",
+    "socket.io-client": "^3.0.4",
     "mocha": "^8.2.1"
   }
 }

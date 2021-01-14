@@ -4,7 +4,7 @@ import Position from '../models/position.js';
 import GameConfig from '../config/game.js';
 import { ResponseCode } from '../config/server.js';
 
-class Core {
+class Game {
 
     constructor() {
         this.map = new Map();
@@ -82,15 +82,15 @@ class Core {
         console.log("===================");
         var line = '';
         for (var i = GameConfig.HEIGHT - 1; i >= 0; i--) {
-          line = '';
-          for (var j = 0; j < GameConfig.WIDTH; j++) {
+            line = '';
+            for (var j = 0; j < GameConfig.WIDTH; j++) {
             var s = this.map.map[j][i] == 0 ? '.' : (this.map.map[j][i] == 1 ? '*' : this.map.map[j][i] == 2 ? 'X' : (this.map.map[j][i] == 3 ? 'O' : '+'));
             line += (' '+s);
             //console.log(map[j][i]);
-          }
-          console.log(line);
+            }
+            console.log(line);
         }
-      }
+    }
     
     // Move one player.
     movePlayer(player) {
@@ -126,6 +126,7 @@ class Core {
         this.deadPlayersList.push(player);
         const index = this.playersList.indexOf(player)
         this.playersList.splice(index, 1);
+        console.log(player.name + ' is dead.');
     }
 
     eatFruit(player) {
@@ -133,6 +134,7 @@ class Core {
         player.score += GameConfig.FRUITSCORE;
         this.map.counterFruit = (Math.floor(Math.random() * ((GameConfig.DELAYMAX + 1) - GameConfig.DELAYMIN) + GameConfig.DELAYMIN)) / GameConfig.INTERVAL;
         this.map.fruitCoordinate = undefined;
+        console.log(player.name + ' ate a fruit.');
     }
 
     // Check is a fruit is at this position.
@@ -204,4 +206,4 @@ class Core {
     }
 }
 
-export default Core;
+export default Game;

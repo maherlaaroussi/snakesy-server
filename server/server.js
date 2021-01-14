@@ -1,12 +1,11 @@
-import ServerConfig from '../config/server.js';
 import GameConfig from '../config/game.js';
 import * as socketio from 'socket.io';
-import Core from './core.js';
-import ResponseCode from '../config/server.js';
+import Game from '../core/game.js';
+import { ResponseCode, ServerConfig } from '../config/server.js';
 
 class Server {
   constructor() {
-    this.core = new Core();
+    this.game = new Game();
     this.io = new socketio.Server(ServerConfig.PORT);
     this.isGame = false;
   }
@@ -15,35 +14,43 @@ class Server {
     // Create the new game
     if(!this.isGame) {
       this.isGame = true;
-      console.log('New game.');
-      this.core.newGame();
+      console.log('Server started at ws://localhost:' + ServerConfig.PORT + '.');
+      this.game.newGame();
       setInterval(this.refresh.bind(this), GameConfig.INTERVAL * 1000);
     }
 
     // Connection is important for server-side, we must put all stuffs here.
     this.io.on('connection', socket => {
+
+      // TODO: Send configuration of map to client.
       
       socket.on('new-player', name => {
         //console.log('New player: ' + name);
-        var codeAnswer = this.core.newPlayer(name, socket);
-        if(codeAnswer == ResponseCode.ACCOUNT_CREATED) this.io.emit('player-created');
-        else this.io.emit('message', codeAnswer);
+        var codeAnswer = this.game.newPlayer(name, socket);
+        if(codeAnswer == ResponseCode.ACCOUNT_CREATED) {
+          socket.emit('player-created');
+          console.log(name + ' has joined the game.');
+        }
+        else socket.emit('message', codeAnswer);
       });
 
       socket.on('move', direction => {
         //console.log('Receive: '+ direction);
-        this.core.saveMove(direction, socket);
+        this.game.saveMove(direction, socket);
       });
 
     });
   }
 
   refresh() {
-    //this.core.getPlayers().forEach(p => this.io.emit('players', p.snake));
-    this.core.showMap();
-    this.core.refreshGame();
-    this.io.emit('refresh-map', JSON.stringify(this.core.getInformations()));
-    //this.core.getPlayers().forEach(p => this.io.emit('refresh-map', p.snake));
+    //this.game.getPlayers().forEach(p => this.io.emit('players', p.snake));
+    //this.game.showMap();
+    //this.game.getPlayers().forEach(p => this.io.emit('refresh-map', p.snake));
+    this.game.refreshGame();
+    this.io.emit('refresh-map', JSON.stringify(this.game.getInformations()));
+    this.game.getPlayers().forEach(p => {
+      p.socket.emit('my-player', p.getInformations());
+    });
   }
 }
 

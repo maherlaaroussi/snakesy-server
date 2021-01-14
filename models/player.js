@@ -22,6 +22,14 @@ class Player {
       return this.snake;
     }
 
+    getInformations() {
+      return {
+        name : this.name,
+        snake: this.snake,
+        score: this.score   
+      };
+    }
+
 }
 
 export default Player;
