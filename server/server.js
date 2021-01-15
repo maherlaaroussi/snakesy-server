@@ -1,7 +1,8 @@
 import GameConfig from '../config/game.js';
 import * as socketio from 'socket.io';
 import Game from '../core/game.js';
-import { ResponseCode, ServerConfig } from '../config/server.js';
+import ServerConfig from '../config/server.js';
+import ResponseCode from '../config/response.js';
 
 class Server {
   constructor() {
@@ -27,7 +28,7 @@ class Server {
       socket.on('new-player', name => {
         //console.log('New player: ' + name);
         var codeAnswer = this.game.newPlayer(name, socket);
-        if(codeAnswer == ResponseCode.ACCOUNT_CREATED) {
+        if(codeAnswer == ResponseCode.INFORMATION.ACCOUNT_CREATED) {
           socket.emit('player-created');
           console.log(name + ' has joined the game.');
         }

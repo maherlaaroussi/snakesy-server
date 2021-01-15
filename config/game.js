@@ -1,5 +1,3 @@
-// Global variables
-
 const DIRECTIONS = {
     RIGHT: 'right',
     LEFT: 'left',
@@ -21,7 +19,7 @@ const GameConfig = {
     DIRECTIONDEFAULT: DIRECTIONS.RIGHT,
     FRUITSCORE: 10,
     DELAYMAX: 3,
-    DELAYMIN: 1,
+    DELAYMIN: 1
 };
 
 export default GameConfig;

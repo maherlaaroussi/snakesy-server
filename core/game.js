@@ -2,7 +2,7 @@ import Player from '../models/player.js';
 import Map from '../models/map.js';
 import Position from '../models/position.js';
 import GameConfig from '../config/game.js';
-import { ResponseCode } from '../config/server.js';
+import ResponseCode from '../config/response.js';
 
 class Game {
 
@@ -44,14 +44,14 @@ class Game {
     }
 
     newPlayer(name, socket) {
-        if(this.isNameExist(name)) return ResponseCode.ERROR_NAME_ALREADY_EXIST;
-        if(this.isSocketExist(socket)) return ResponseCode.ERROR_SOCKET_ALREADY_EXIST;
+        if(this.isNameExist(name)) return ResponseCode.ERROR.NAME_ALREADY_EXIST;
+        if(this.isSocketExist(socket)) return ResponseCode.ERROR.SOCKET_ALREADY_EXIST;
         var randomPosition = this.map.getRandomSpawn();
         var player = new Player(name, socket);
         player.snake.push(randomPosition);
         this.playersList.push(player);
         this.map.map[randomPosition.x][randomPosition.y] = GameConfig.keyMap.SNAKE; 
-        return ResponseCode.ACCOUNT_CREATED;
+        return ResponseCode.INFORMATION.ACCOUNT_CREATED;
     }
 
     getMap() {
